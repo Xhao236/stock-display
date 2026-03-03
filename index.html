@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>库存展示</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.spec {
+    color: #666;
+    font-size: 13px;
+    margin: 4px 0;
+}
+
+.price {
+    color: #e53935;
+    font-size: 14px;
+}
+
+.stock {
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+.low {
+    color: #e53935;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>商品库存</h1>
+    <div id="list"></div>
+</div>
+
+<script>
+
+const SUPABASE_URL = "https://eqvgkuepjficeubrtshf.supabase.co";
+const SUPABASE_KEY = "sb_publishable_UPeSm2JHiju82_YNtaZLxg_pgQ4ZjtZ";
+
+async function loadProducts() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/products?select=*`, {
+        headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": "Bearer " + SUPABASE_KEY
+        }
+    });
+
+    const data = await res.json();
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    data.forEach(item => {
+        const lowClass = item.stock <= 1 ? "low" : "";
+
+        list.innerHTML += `
+            <div class="card">
+                <div class="name">${item.name}</div>
+                <div class="spec">${item.spec}</div>
+                <div class="price">¥ ${item.price}</div>
+                <div class="stock ${lowClass}">
+                    剩余库存：${item.stock}
+                </div>
+            </div>
+        `;
+    });
+}
+
+loadProducts();
+
+// 每30秒刷新
+setInterval(loadProducts, 30000);
+
+</script>
+
+</body>
+</html>
