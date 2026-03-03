@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>库存展示</title>
 
+<!-- Supabase CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -53,6 +54,7 @@ h1 {
     letter-spacing: -0.5px;
 }
 
+/* 卡片 */
 .card {
     display: flex;
     gap: 18px;
@@ -138,18 +140,24 @@ h1 {
 </div>
 
 <script>
-const SUPABASE_URL = "https://eqvgkuepjficeubrtshf.supabase.co";
-const SUPABASE_KEY = "sb_publishable_UPeSm2JHiju82_YNtaZLxg_pgQ4ZjtZ";
+const SUPABASE_URL = "你的SUPABASE_URL";
+const SUPABASE_KEY = "你的PUBLISHABLE_KEY";
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* 注意：不要再用 const supabase = ... */
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let lastStock = {};
 
 async function loadProducts() {
-    const { data } = await supabase
+    const { data, error } = await client
         .from("products")
         .select("*")
         .order("id", { ascending: true });
+
+    if (error) {
+        console.error(error);
+        return;
+    }
 
     render(data);
 }
@@ -181,10 +189,12 @@ function render(data) {
 
         list.appendChild(card);
 
+        /* 卡片依次浮现 */
         setTimeout(() => {
             card.classList.add("visible");
         }, index * 120);
 
+        /* 库存变化闪动 */
         if (lastStock[item.id] !== undefined && lastStock[item.id] !== item.stock) {
             const stockEl = document.getElementById("stock-" + item.id);
             if (stockEl) stockEl.classList.add("flash");
@@ -194,14 +204,18 @@ function render(data) {
     });
 }
 
+/* 初始加载 */
 loadProducts();
 
 /* 真·实时更新 */
-supabase
+client
 .channel('realtime-products')
-.on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, payload => {
-    loadProducts();
-})
+.on('postgres_changes', 
+    { event: '*', schema: 'public', table: 'products' }, 
+    payload => {
+        loadProducts();
+    }
+)
 .subscribe();
 </script>
 
